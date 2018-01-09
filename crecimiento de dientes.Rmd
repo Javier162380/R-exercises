@@ -1,0 +1,85 @@
+---
+title: "Práctica final R.Markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+En el fichero CreciminetoDientes.csv aparecen datos sobre dientes. Se
+trata de datos referidos a 60 dientes. En concreto los datos que aparecen
+son:
+len : Longitud del diente (en mm.);
+supp : Tipo de suministraci´on (en mm.);
+dose : Dosis de Vitamina C: 0.5, 1 y 2 mg/day.
+
+1. En primer lugar cargamos el fichero, con la función read csv.
+
+```{r}
+dientes.df=read.csv('./CrecimientoDientes.csv',sep = ';')
+dientes.df
+```
+
+Como podemos observar nos encontramos con tres columnas que hacen referencia al la longitud del diente, el tipo de suplementación y la dosis de vitamina C proporcionada.
+
+```{r}
+summary(dientes.df)
+```
+
+Haciendo uso de la función summary podemos encontrar una descripción más detallada de los datos.
+
+2.Ahora vemos gráficamente como se distribuyen la longuitud de los dientes, para cada tipo de suplementación en función del tipo de dosis.
+
+```{r}
+library(ggplot2)
+dientes.df.05=dientes.df[dientes.df$dose==0.5,]
+ggplot(dientes.df.05, aes(x=len, fill=supp)) +
+geom_histogram(binwidth=1, position="dodge")
+```
+```{r}
+dientes.df.1=dientes.df[dientes.df$dose==1,]
+ggplot(dientes.df.1, aes(x=len, fill=supp)) +
+geom_histogram(binwidth=1, position="dodge")
+```
+```{r}
+ dientes.df.2=dientes.df[dientes.df$dose==2,]
+ggplot(dientes.df.2, aes(x=len, fill=supp)) +
+geom_histogram(binwidth=1, position="dodge")
+```
+```{r}
+ggplot(dientes.df, aes(x=len, fill=supp)) +
+geom_histogram(binwidth=4, position="dodge")
+```
+
+De este modo observamos como para dosis bajas de 0.5 o 1 los en los métodos de suplementacion OJ, la longuitud de los dientes parece ser mayor que para metodos VC.Sin embargo para dosis de 2 el comportamiento para ambos metodos parecec ser similar. S
+
+
+3.Para realizar el contraste, usaremos un contraste de medias pues queremos averiguar si el la longuitud del diente depende del método de suplementación de la vitamina. Donde  μ1  esta representado por la media de la muestra con suministración OJ , y μ2 esta representado por la media de la muestra con suministración VC,siendo la hipoteisis nula que la medias  son iguales(y por tanto el método de suministración es independiente de la longuitud del diente) y la hipotesis alternativa que las medias son distintas.
+    H0: μ1 = μ2
+    
+    H0: μ1 ≠ μ2
+
+A la hora de enfocar este contraste el estadístico cambiara si entendemos que las varianzas poblacionales son distintas o las varianzas poblaciones son iguales por lo que plantearemos en primer lugar este contraste. Donde σ21 sera la varianza de la muestra para la suministración OJ y σ22 sera la varianza de la muestra para la suministracion de VC, siendo la hipoteisis nula que la varianza son iguales y la hipotesis alternativa que las varianzas son distintas.
+
+    H0: σ21 = σ22
+
+    H0: σ21 ≠ σ22
+
+```{r}
+dientes.df.oj=dientes.df[dientes.df$supp=='OJ',]
+dientes.df.vc=dientes.df[dientes.df$supp=='VC',]
+sol.var.test=var.test(dientes.df.vc$len,dientes.df.oj$len,ratio=1,alternative="two.sided",conf.level=0.95)
+sol.var.test
+
+```
+Atendiendo al resultado del p-valor >= 0.2331 no podemos rechazar la hipoteisis nula y por tanto entedemos que la varianza es igual en ambas muestras.
+
+Ahora planteamos el contraste de medias pues para varianzas distintas pero conocidas
+```{r}
+sol.ttest.vareq=t.test(dientes.df.vc$len,dientes.df.oj$len,alternative="two.side",var.equal=TRUE,conf.level=0.98)
+sol.ttest.vareq
+```
+En este caso como el p-valor es ligeramente alto para este contraste por ello los datos no evidencian que exista posibilidad de  rechazar la hipotesis nula y tendríamos que concluir pues que la longitud de los dientes es independiente del metodo de suministración.
